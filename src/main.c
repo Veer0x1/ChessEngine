@@ -63,7 +63,8 @@ const U64 not_ab_file = 18229723555195321596ULL;
 U64 pawn_attacks[2][64];
 // nigh attack table [sq]
 U64 knight_attacks[64];
-
+// king attack table [sq]
+U64 king_attacks[64];
 
 // generate pawn attacks
 U64 mask_pawn_attacks(int side, int sq)
@@ -106,6 +107,26 @@ U64 mask_knight_attacks(int sq)
 
 	return attacks;
 }
+
+// generate king attacks
+U64 mask_king_attacks(int sq)
+{
+	U64 attacks = 0ULL;
+	U64 bitboard = 0ULL;
+	set_bit(bitboard, sq);
+
+	attacks |= bitboard << 8;
+	attacks |= bitboard >> 8;
+	attacks |= (bitboard << 1) & not_a_file;
+	attacks |= (bitboard >> 1) & not_h_file;
+	attacks |= (bitboard << 9) & not_a_file;
+	attacks |= (bitboard >> 9) & not_h_file;
+	attacks |= (bitboard << 7) & not_h_file;
+	attacks |= (bitboard >> 7) & not_a_file;
+	return attacks;
+}
+
+
 void init_leaper_attack()
 {
 	for(int sq=0;sq<64;++sq)
@@ -116,6 +137,9 @@ void init_leaper_attack()
 
 		// knight attacks
 		knight_attacks[sq]=mask_knight_attacks(sq);
+
+		// king attacks
+		king_attacks[sq]=mask_king_attacks(sq);
 	}
 }
 
@@ -145,6 +169,5 @@ void print_board(U64 bb)
 int main()
 {
 	init_leaper_attack();
-	print_board(mask_knight_attacks(a4));
 	return 0;
 }
