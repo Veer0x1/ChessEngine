@@ -61,6 +61,9 @@ const U64 not_ab_file = 18229723555195321596ULL;
 
 // pawn attack table [side][sq]
 U64 pawn_attacks[2][64];
+// nigh attack table [sq]
+U64 knight_attacks[64];
+
 
 // generate pawn attacks
 U64 mask_pawn_attacks(int side, int sq)
@@ -84,12 +87,35 @@ U64 mask_pawn_attacks(int side, int sq)
 	}
 	return attacks;
 }
+
+// generate knight attacks
+U64 mask_knight_attacks(int sq)
+{
+	U64 attacks = 0ULL;
+	U64 bitboard = 0ULL;
+	set_bit(bitboard, sq);
+
+	attacks |= (bitboard << 17) & not_a_file;
+	attacks |= (bitboard << 15) & not_h_file;
+	attacks |= (bitboard << 10) & not_ab_file;
+	attacks |= (bitboard << 6) & not_hg_file;
+	attacks |= (bitboard >> 17) & not_h_file;
+	attacks |= (bitboard >> 15) & not_a_file;
+	attacks |= (bitboard >> 10) & not_hg_file;
+	attacks |= (bitboard >> 6) & not_ab_file;
+
+	return attacks;
+}
 void init_leaper_attack()
 {
 	for(int sq=0;sq<64;++sq)
 	{
+		// pawn attacks
 		pawn_attacks[white][sq]=mask_pawn_attacks(white,sq);
 		pawn_attacks[black][sq]=mask_pawn_attacks(black,sq);
+
+		// knight attacks
+		knight_attacks[sq]=mask_knight_attacks(sq);
 	}
 }
 
@@ -119,10 +145,6 @@ void print_board(U64 bb)
 int main()
 {
 	init_leaper_attack();
-	for(int sq=0;sq<64;++sq)
-	{
-		printf("Pawn attacks for black at sq %d\n",sq);
-		print_board(pawn_attacks[black][sq]);
-	}
+	print_board(mask_knight_attacks(a4));
 	return 0;
 }
