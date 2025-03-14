@@ -8,7 +8,16 @@
 #define set_bit(bb, sq) (bb |= (1ULL << sq))
 #define pop_bit(bb, sq) (bb &= ~(1ULL << sq))
 
-enum { white, black};
+// count bit within the bitboard
+#define count_bit(bb) __builtin_popcountll(bb);
+// getting lsb index
+#define get_lsb_index(bb) __builtin_ctzll(bb)
+
+enum
+{
+	white,
+	black
+};
 
 enum {
  a8, b8, c8, d8, e8, f8, g8, h8,
@@ -21,7 +30,7 @@ enum {
  a1, b1, c1, d1, e1, f1, g1, h1
 };
 
-/*
+const char* square_to_cordinates[] = {
   "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
   "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
   "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
@@ -30,7 +39,7 @@ enum {
   "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
   "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
   "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1"
-*/
+};
 
 /*
  not A file constant
@@ -176,6 +185,85 @@ U64 mask_rook_attacks(int sq)
 	return attacks;
 }
 
+// generate bishop attack on the fly
+U64 bishop_attacks_on_the_fly(int sq, U64 occ)
+{
+	U64 attacks = 0ULL;
+
+	int r,f;
+
+	// int target rank and file
+	int tr = sq / 8;
+	int tf = sq % 8;
+
+	// mask relevant bishop occupancy bits
+	for(r=tr+1,f=tf+1;r<=7 && f<=7;++r,++f)
+	{
+		attacks |= (1ULL << ((r*8)+f));
+		if(occ & (1ULL << ((r*8)+f)))
+			break;
+	}
+	for(r=tr+1,f=tf-1;r<=7 && f>=0;++r,--f)
+	{
+		attacks |= (1ULL << ((r*8)+f));
+		if(occ & (1ULL << ((r*8)+f)))
+			break;
+	}
+	for(r=tr-1,f=tf+1;r>=0 && f<=7;--r,++f)
+	{
+		attacks |= (1ULL << ((r*8) + f));
+		if(occ & (1ULL << ((r*8)+f)))
+			break;
+	}
+	for(r=tr-1,f=tf-1;r>=0 && f>=0;--r,--f)
+	{
+		attacks |= (1ULL << ((r*8)+f));
+		if(occ & (1ULL << ((r*8)+f)))
+			break;
+	}
+
+	return attacks;
+}
+
+// generate rook attack on the fly
+U64 rook_attacks_on_the_fly(int sq, U64 occ)
+{
+	U64 attacks = 0ULL;
+
+	int r,f;
+
+	// int target rank and file
+	int tr = sq / 8;
+	int tf = sq % 8;
+
+	// mask relevant rook occupancy bits
+	for(r=tr+1;r<=7;++r)
+	{
+		attacks |= (1ULL << (r*8+tf));
+		if(occ & (1ULL << (r*8+tf)))
+			break;
+	}
+	for(r=tr-1;r>=0;--r)
+	{
+		attacks |= (1ULL << (r*8+tf));
+		if(occ & (1ULL << (r*8+tf)))
+			break;
+	}
+	for(f=tf+1;f<=7;++f)
+	{
+		attacks |= (1ULL << (tr*8+f));
+		if(occ & (1ULL << (tr*8+f)))
+			break;
+	}
+	for(f=tf-1;f>=0;--f)
+	{
+		attacks |= (1ULL << (tr*8+f));
+		if(occ & (1ULL << (tr*8+f)))
+			break;
+	}
+
+	return attacks;
+}
 
 void init_leaper_attack()
 {
@@ -219,6 +307,13 @@ void print_board(U64 bb)
 int main()
 {
 	init_leaper_attack();
-	print_board(mask_rook_attacks(d4));
+	U64 occ = 0ULL;
+	set_bit(occ, c5);
+	set_bit(occ,f3);
+	set_bit(occ,g2);
+	set_bit(occ,b7);
+	print_board(occ);
+	print_board(get_lsb_index(occ));
+	printf("cordinate %s\n",square_to_cordinates[get_lsb_index(occ)]);
 	return 0;
 }
