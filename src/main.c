@@ -9,7 +9,7 @@
 #define pop_bit(bb, sq) (bb &= ~(1ULL << sq))
 
 // count bit within the bitboard
-#define count_bit(bb) __builtin_popcountll(bb);
+#define count_bits(bb) __builtin_popcountll(bb)
 // getting lsb index
 #define get_lsb_index(bb) __builtin_ctzll(bb)
 
@@ -265,6 +265,21 @@ U64 rook_attacks_on_the_fly(int sq, U64 occ)
 	return attacks;
 }
 
+U64 set_occupancy(int index, int bits_in_mask, U64 attack_mask)
+{
+	U64 occupancy = 0ULL;
+
+	for(int count = 0; count < bits_in_mask; ++count)
+	{
+		int sq = get_lsb_index(attack_mask);
+		pop_bit(attack_mask, sq);
+
+		if(index & (1 << count))
+			occupancy |= (1ULL << sq);
+	}
+	return occupancy;
+}
+
 void init_leaper_attack()
 {
 	for(int sq=0;sq<64;++sq)
@@ -307,13 +322,12 @@ void print_board(U64 bb)
 int main()
 {
 	init_leaper_attack();
-	U64 occ = 0ULL;
-	set_bit(occ, c5);
-	set_bit(occ,f3);
-	set_bit(occ,g2);
-	set_bit(occ,b7);
-	print_board(occ);
-	print_board(get_lsb_index(occ));
-	printf("cordinate %s\n",square_to_cordinates[get_lsb_index(occ)]);
+	U64 attack_mask = mask_bishop_attacks(d4);
+
+	for(int index=0;index<(1<<12);++index)
+	{
+		print_board(set_occupancy(index, count_bits(attack_mask), attack_mask));
+		getchar();
+	}
 	return 0;
 }
