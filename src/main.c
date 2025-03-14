@@ -151,6 +151,32 @@ U64 mask_bishop_attacks(int sq)
 	return attacks;
 }
 
+// mask rook attacks
+U64 mask_rook_attacks(int sq)
+{
+	U64 attacks = 0ULL;
+
+	// init ranks and file
+	int r,f;
+
+	// int target rank and file
+	int tr = sq / 8;
+	int tf = sq % 8;
+
+	// mask relevant rook occupancy bits
+	for(r=tr+1;r<=6;++r)
+		attacks |= (1ULL << (r*8+tf));
+	for(r=tr-1;r>=1;--r)
+		attacks |= (1ULL << (r*8+tf));
+	for(f=tf+1;f<=6;++f)
+		attacks |= (1ULL << (tr*8+f));
+	for(f=tf-1;f>=1;--f)
+		attacks |= (1ULL << (tr*8+f));
+
+	return attacks;
+}
+
+
 void init_leaper_attack()
 {
 	for(int sq=0;sq<64;++sq)
@@ -193,6 +219,6 @@ void print_board(U64 bb)
 int main()
 {
 	init_leaper_attack();
-	print_board(mask_bishop_attacks(b2));
+	print_board(mask_rook_attacks(d4));
 	return 0;
 }
